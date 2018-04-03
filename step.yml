@@ -1,8 +1,8 @@
-name: oci-object-store-sync
-version: 1.0
-summary: oci-object-store-sync step
+name: oci-objectstore-sync
+version: 0.2.4
+summary: oci-objectstore-sync step
 tags:
-- s3
+- oci
 properties:
 - name: region
   type: string
@@ -25,9 +25,16 @@ properties:
 - name: object_name
   type: string
   required: true
-- name: file
+- name: source_dir
   type: string
   required: true
-- name: source_dir
+- name: object_prefix
+  type: string
+  required: false
+- name: overwrite
+  type: boolean
+  required: false
+  default: false
+- name: options
   type: string
   required: false
