@@ -1,0 +1,33 @@
+name: oci-object-store-sync
+version: 1.0
+summary: oci-object-store-sync step
+tags:
+- s3
+properties:
+- name: region
+  type: string
+  required: true
+- name: tenancy_ocid
+  type: string
+  required: true
+- name: user_ocid
+  type: string
+  required: true
+- name: fingerprint
+  type: string
+  required: false
+- name: namespace
+  type: string
+  required: true
+- name: bucket_name
+  type: string
+  required: true
+- name: object_name
+  type: string
+  required: true
+- name: file
+  type: string
+  required: true
+- name: source_dir
+  type: string
+  required: false

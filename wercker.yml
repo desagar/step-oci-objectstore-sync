@@ -1,0 +1,34 @@
+box: debian:stable-slim
+
+build:
+    steps:
+        - shellcheck:
+            files: run.sh
+
+        - script:
+            name: set version
+            code: |
+                export OCI_CLI_VERSION="2.4.19"
+                echo "Installing version $OCI_CLI_VERSION of oci CLI"
+
+        - install-packages:
+            packages: curl python-pip
+
+        - script:
+            name: install ocicli 
+            code: |
+                sudo pip install oci-cli==${OCI_CLI_VERSION}
+
+        - script:
+            name: version
+            code: oci --version
+
+dev:
+  steps:
+    - internal/shell
+
+publish:
+  steps:
+    - internal/publish-step:
+        owner: wercker
+
