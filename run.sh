@@ -63,7 +63,24 @@ set_overwrite_flag() {
   fi
 }
 
-get_bulk_upload_cmd() {
+runCommand() {
+  set +e
+  local cmd=$1
+  debug "$cmd"
+  echo "running"
+
+  local sync_output=$($cmd)
+  if [[ $? -ne 0 ]];then
+      echo "$sync_output"
+      fail "oci object store $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed";
+  else
+      echo "$sync_output"
+      success "completed oci object store $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND";
+  fi
+  set -e
+}
+
+bulk_upload_cmd() {
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR" ]; then
     fail 'missing or empty option local_dir, please check wercker.yml'
   fi
@@ -76,11 +93,11 @@ get_bulk_upload_cmd() {
     WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX="$(basename $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR)/"
   fi
 
-  set +e
-  echo "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"
+  local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"
+  runCommand $ocicmd
 }
 
-get_bulk_download_cmd() {
+bulk_download_cmd() {
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR" ]; then
     fail 'missing or empty option local_dir, please check wercker.yml'
   fi
@@ -97,12 +114,11 @@ get_bulk_download_cmd() {
     WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS="$WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS --prefix ""$WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"""
   fi
 
-  set +e
-  echo "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-download $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --download-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR"
-
+  local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-download $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --download-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR"
+  runCommand $ocicmd
 }
 
-get_single_file_upload_cmd() {
+single_file_upload_cmd() {
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE" ]; then
     fail 'missing or empty option local_file is required for uploading a single file, please check wercker.yml'
   fi
@@ -116,11 +132,11 @@ get_single_file_upload_cmd() {
     WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME="$(basename $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE)"
   fi
 
-  set +e
-  echo "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object put $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
+  local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object put $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
+  runCommand $ocicmd
 }
 
-get_single_file_download_cmd() {
+single_file_download_cmd() {
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME" ]; then
     fail 'missing or empty option object_name is required for downloading a single object, please check wercker.yml'
   fi
@@ -130,8 +146,8 @@ get_single_file_download_cmd() {
     WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE="$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME"
   fi
 
-  set +e
-  echo "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object get $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
+  local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object get $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
+  runCommand $ocicmd
 }
 
 main() {
@@ -151,46 +167,21 @@ main() {
 
   case "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND" in
     bulk-upload)
-        local SYNC=$(get_bulk_upload_cmd)
-        if [[ $? -ne 0 ]];then
-          fail "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed"
-        fi
+        bulk_upload_cmd
         ;;
     bulk-download)
-        local SYNC=$(get_bulk_download_cmd)
-        if [[ $? -ne 0 ]];then
-          fail "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed"
-        fi
+        bulk_download_cmd
         ;;
     put)
-        local SYNC=$(get_single_file_upload_cmd)
-        if [[ $? -ne 0 ]];then
-          fail "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed"
-        fi
+        single_file_upload_cmd
         ;;
     get)
-        local SYNC=$(get_single_file_download_cmd)
-        if [[ $? -ne 0 ]];then
-          fail "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed"
-        fi
+        single_file_download_cmd
         ;;
     *)
         fail "unknown oci command $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND - currently supported commands are [bulk-upload, bulk-download, get, put]"
         ;;
   esac
-
-  debug "$SYNC"
-  echo "running"
-  local sync_output=$($SYNC)
-
-  if [[ $? -ne 0 ]];then
-      echo "$sync_output"
-      fail "oci os object $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed";
-  else
-      echo "$sync_output"
-      success "completed oci object store $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND";
-  fi
-  set -e
 }
 
 main
