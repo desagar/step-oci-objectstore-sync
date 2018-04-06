@@ -55,19 +55,8 @@ validate_oci_flags() {
   fi
 }
 
-main() {
-  validate_oci_flags
-  set_auth
-
-  #Python 3 has ascii as locale default which makes a library ("click") used by ocicli to fail.
-  #Explicitly set locale to UTF-8
-  export LANG=C.UTF-8
-  export LC_ALL=C.UTF-8
-  info 'starting OCI object store synchronisation with OCI version:'
-  $WERCKER_STEP_ROOT/oci --version
-
-  
-  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR" ]; then
+bulk_upload_cmd() {
+    if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR" ]; then
     fail 'missing or empty option source_dir, please check wercker.yml'
   fi
 
@@ -90,8 +79,27 @@ main() {
   fi  
 
   set +e
-  local SYNC="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_PREFIX"
+  return "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_PREFIX"
+}
 
+main() {
+  validate_oci_flags
+  
+  set_auth
+
+  #Python 3 has ascii as locale default which makes a library ("click") used by ocicli to fail.
+  #Explicitly set locale to UTF-8
+  export LANG=C.UTF-8
+  export LC_ALL=C.UTF-8
+  info 'starting OCI object store synchronisation with OCI version:'
+  $WERCKER_STEP_ROOT/oci --version
+
+  case "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND" in
+    bulk-upload)
+        local SYNC=get_bulk_upload_cmd
+        ;;
+    *)
+        fail "unknown oci command $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND - currently supported commands are [bulk-upload]"
   debug "$SYNC"
   echo "running"
   local sync_output=$($SYNC)

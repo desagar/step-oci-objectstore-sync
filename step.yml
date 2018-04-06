@@ -1,5 +1,5 @@
 name: oci-objectstore-sync
-version: 0.2.5
+version: 0.2.6
 summary: oci-objectstore-sync step
 tags:
 - oci
@@ -20,6 +20,9 @@ properties:
   type: string
   required: true
 - name: bucket_name
+  type: string
+  required: true
+- name: command
   type: string
   required: true
 - name: object_name
