@@ -56,16 +56,16 @@ validate_oci_flags() {
 }
 
 get_bulk_upload_cmd() {
-    if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR" ]; then
+  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR" ]; then
     fail 'missing or empty option local_dir, please check wercker.yml'
   fi
 
-  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME" ]; then
-    fail 'missing or empty option object_name, please check wercker.yml'
-  fi
+  #if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME" ]; then
+   # fail 'missing or empty option object_name, please check wercker.yml'
+  #fi
 
   if [[ ! -d $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR || -L $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR ]] ; then
-    fail 'specified source directory does not exist or is not readable'
+    fail 'specified local directory does not exist or is not readable'
   fi
 
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX" ]; then
@@ -79,7 +79,11 @@ get_bulk_upload_cmd() {
   fi  
 
   set +e
-  return "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"
+  echo "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"
+}
+
+get_bulk_download_cmd() {
+
 }
 
 main() {
@@ -96,7 +100,7 @@ main() {
 
   case "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND" in
     bulk-upload)
-        local SYNC=get_bulk_upload_cmd
+        local SYNC=$(get_bulk_upload_cmd)
         ;;
     *)
         fail "unknown oci command $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND - currently supported commands are [bulk-upload]"
