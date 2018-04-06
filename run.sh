@@ -94,12 +94,44 @@ get_bulk_download_cmd() {
   fi
 
   if [ -n "$WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX" ]; then
-    WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS="$WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS --prefix $WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"
+    WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS="$WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS --prefix ""$WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"""
   fi
 
   set +e
   echo "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-download $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --download-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR"
 
+}
+
+get_single_file_upload_cmd() {
+  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE" ]; then
+    fail 'missing or empty option local_file is required for uploading a single file, please check wercker.yml'
+  fi
+
+  if [[ ! -f $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE || ! -r $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE ]] ; then
+    fail 'specified local_file must be a regular file and must be readable'
+  fi
+
+  #default the object name to the same as the file's basename
+  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME" ]; then
+    WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME="$(basename $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE)"
+  fi
+
+  set +e
+  echo "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object put $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
+}
+
+get_single_file_download_cmd() {
+  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME" ]; then
+    fail 'missing or empty option object_name is required for downloading a single object, please check wercker.yml'
+  fi
+
+  #default the local file name to the same as the object name
+  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE" ]; then
+    WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE="$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME"
+  fi
+
+  set +e
+  echo "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object get $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
 }
 
 main() {

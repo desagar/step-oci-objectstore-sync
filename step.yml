@@ -1,5 +1,5 @@
 name: oci-objectstore-sync
-version: 0.2.9
+version: 0.3.0
 summary: oci-objectstore-sync step
 tags:
 - oci
@@ -25,9 +25,6 @@ properties:
 - name: command
   type: string
   required: true
-- name: object_name
-  type: string
-  required: true
 - name: local_dir
   type: string
   required: true
@@ -38,6 +35,12 @@ properties:
   type: boolean
   required: false
   default: false
+- name: local_file
+  type: string
+  required: false
+- name: object_name
+  type: string
+  required: false
 - name: options
   type: string
   required: false
