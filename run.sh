@@ -106,10 +106,6 @@ bulk_download_cmd() {
     fail 'specified local directory does not exist or is not writable'
   fi
 
-  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX" ]; then
-    WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX="$(basename $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR)/"
-  fi
-
   if [ -n "$WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX" ]; then
     WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS="$WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS --prefix ""$WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"""
   fi
