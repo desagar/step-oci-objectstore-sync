@@ -111,8 +111,8 @@ main() {
   #Explicitly set locale to UTF-8
   export LANG=C.UTF-8
   export LC_ALL=C.UTF-8
-  info 'starting OCI object store synchronisation with OCI version:'
-  $WERCKER_STEP_ROOT/oci --version
+  info 'starting OCI object store synchronisation'
+  #$WERCKER_STEP_ROOT/oci --version
 
   set_overwrite_flag
   WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS="$WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG"
