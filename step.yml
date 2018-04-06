@@ -1,5 +1,5 @@
 name: oci-objectstore-sync
-version: 0.2.4
+version: 0.2.5
 summary: oci-objectstore-sync step
 tags:
 - oci

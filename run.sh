@@ -23,16 +23,7 @@ set_auth() {
   debug "generated OCI config file"
 }
 
-main() {
-  set_auth
-
-  #Python 3 has ascii as locale default which makes a library ("click") used by ocicli to fail.
-  #Explicitly set locale to UTF-8
-  export LANG=C.UTF-8
-  export LC_ALL=C.UTF-8
-  info 'starting OCI object store synchronisation with OCI version:'
-  $WERCKER_STEP_ROOT/oci --version
-
+validate_oci_flags() {
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_TENANCY_OCID" ]; then
     fail 'missing or empty option tenancy_ocid, please check wercker.yml'
   fi
@@ -62,7 +53,20 @@ main() {
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE" ]; then
     fail 'missing or empty option namespace, please check wercker.yml'
   fi
+}
 
+main() {
+  validate_oci_flags
+  set_auth
+
+  #Python 3 has ascii as locale default which makes a library ("click") used by ocicli to fail.
+  #Explicitly set locale to UTF-8
+  export LANG=C.UTF-8
+  export LC_ALL=C.UTF-8
+  info 'starting OCI object store synchronisation with OCI version:'
+  $WERCKER_STEP_ROOT/oci --version
+
+  
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR" ]; then
     fail 'missing or empty option source_dir, please check wercker.yml'
   fi
