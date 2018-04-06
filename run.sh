@@ -100,6 +100,9 @@ main() {
         ;;
     *)
         fail "unknown oci command $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND - currently supported commands are [bulk-upload]"
+        ;;
+  esac
+
   debug "$SYNC"
   echo "running"
   local sync_output=$($SYNC)
