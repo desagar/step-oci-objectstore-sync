@@ -20,6 +20,8 @@ set_auth() {
   echo "region=${WERCKER_OCI_OBJECTSTORE_SYNC_REGION}" >> "$CONFIG_FILE"
   echo "key_file=${key_file}" >> "$CONFIG_FILE"
 
+  chmod 600 $key_file
+  chmod 600 $CONFIG_FILE
   debug "generated OCI config file"
 }
 
@@ -55,12 +57,13 @@ validate_oci_flags() {
   fi
 }
 
-set_overwrite_flag() {
+set_overwrite_flag_for_bulk() {
   if [[ "$WERCKER_OCI_OBJECTSTORE_SYNC_OVERWRITE" == "true" || "$WERCKER_OCI_OBJECTSTORE_SYNC_OVERWRITE" == "TRUE" ]]; then
     OVERWRITE_FLAG="--overwrite"
   else
     OVERWRITE_FLAG="--no-overwrite"
   fi
+  WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS="$WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG"
 }
 
 runCommand() {
@@ -69,18 +72,17 @@ runCommand() {
   debug "$cmd"
   echo "running"
 
-  local sync_output=$("$cmd")
+  $cmd
   if [[ $? -ne 0 ]];then
-      echo "$sync_output"
       fail "oci object store $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed";
   else
-      echo "$sync_output"
       success "completed oci object store $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND";
   fi
   set -e
 }
 
 bulk_upload_cmd() {
+  set_overwrite_flag_for_bulk
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR" ]; then
     fail 'missing or empty option local_dir, please check wercker.yml'
   fi
@@ -98,6 +100,7 @@ bulk_upload_cmd() {
 }
 
 bulk_download_cmd() {
+  set_overwrite_flag_for_bulk
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR" ]; then
     fail 'missing or empty option local_dir, please check wercker.yml'
   fi
@@ -115,6 +118,14 @@ bulk_download_cmd() {
 }
 
 single_file_upload_cmd() {
+  #for the put operation there is no --overwrite - instead there is a --force flag. The --no-overwrite flag is supported.
+  if [[ "$WERCKER_OCI_OBJECTSTORE_SYNC_OVERWRITE" == "true" || "$WERCKER_OCI_OBJECTSTORE_SYNC_OVERWRITE" == "TRUE" ]]; then
+    OVERWRITE_FLAG="--force"
+  else
+    OVERWRITE_FLAG="--no-overwrite"
+  fi
+  WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS="$WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG"
+
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE" ]; then
     fail 'missing or empty option local_file is required for uploading a single file, please check wercker.yml'
   fi
@@ -139,10 +150,10 @@ single_file_download_cmd() {
 
   #default the local file name to the same as the object name
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE" ]; then
-    WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE="$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME"
+    WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE="$(basename $WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME)"
   fi
 
-  local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object get $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
+  local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object get $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --name $WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
   runCommand "$ocicmd"
 }
 
@@ -157,9 +168,6 @@ main() {
   export LC_ALL=C.UTF-8
   info 'starting OCI object store synchronisation'
   #$WERCKER_STEP_ROOT/oci --version
-
-  set_overwrite_flag
-  WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS="$WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG"
 
   case "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND" in
     bulk-upload)
