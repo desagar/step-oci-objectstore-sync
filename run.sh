@@ -152,12 +152,30 @@ main() {
   case "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND" in
     bulk-upload)
         local SYNC=$(get_bulk_upload_cmd)
+        if [[ $? -ne 0 ]];then
+          fail "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed"
+        fi
         ;;
     bulk-download)
         local SYNC=$(get_bulk_download_cmd)
-        ;;        
+        if [[ $? -ne 0 ]];then
+          fail "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed"
+        fi
+        ;;
+    put)
+        local SYNC=$(get_single_file_upload_cmd)
+        if [[ $? -ne 0 ]];then
+          fail "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed"
+        fi
+        ;;
+    get)
+        local SYNC=$(get_single_file_download_cmd)
+        if [[ $? -ne 0 ]];then
+          fail "$WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed"
+        fi
+        ;;
     *)
-        fail "unknown oci command $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND - currently supported commands are [bulk-upload]"
+        fail "unknown oci command $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND - currently supported commands are [bulk-upload, bulk-download, get, put]"
         ;;
   esac
 
@@ -167,10 +185,10 @@ main() {
 
   if [[ $? -ne 0 ]];then
       echo "$sync_output"
-      fail 'oci os put failed';
+      fail "oci os object $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed";
   else
       echo "$sync_output"
-      success 'completed oci object store synchronisation';
+      success "completed oci object store $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND";
   fi
   set -e
 }
