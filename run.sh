@@ -65,11 +65,11 @@ set_overwrite_flag() {
 
 runCommand() {
   set +e
-  local cmd=$1
+  local cmd="$1"
   debug "$cmd"
   echo "running"
 
-  local sync_output=$($cmd)
+  local sync_output=$("$cmd")
   if [[ $? -ne 0 ]];then
       echo "$sync_output"
       fail "oci object store $WERCKER_OCI_OBJECTSTORE_SYNC_COMMAND failed";
@@ -94,7 +94,7 @@ bulk_upload_cmd() {
   fi
 
   local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"
-  runCommand $ocicmd
+  runCommand "$ocicmd"
 }
 
 bulk_download_cmd() {
@@ -111,7 +111,7 @@ bulk_download_cmd() {
   fi
 
   local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-download $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --download-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR"
-  runCommand $ocicmd
+  runCommand "$ocicmd"
 }
 
 single_file_upload_cmd() {
@@ -129,7 +129,7 @@ single_file_upload_cmd() {
   fi
 
   local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object put $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
-  runCommand $ocicmd
+  runCommand "$ocicmd"
 }
 
 single_file_download_cmd() {
@@ -143,7 +143,7 @@ single_file_download_cmd() {
   fi
 
   local ocicmd="$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object get $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS -ns $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE -bn $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --file $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_FILE"
-  runCommand $ocicmd
+  runCommand "$ocicmd"
 }
 
 main() {
