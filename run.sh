@@ -55,21 +55,21 @@ validate_oci_flags() {
   fi
 }
 
-bulk_upload_cmd() {
-    if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR" ]; then
-    fail 'missing or empty option source_dir, please check wercker.yml'
+get_bulk_upload_cmd() {
+    if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR" ]; then
+    fail 'missing or empty option local_dir, please check wercker.yml'
   fi
 
   if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_NAME" ]; then
     fail 'missing or empty option object_name, please check wercker.yml'
   fi
 
-  if [[ ! -d $WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR || -L $WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR ]] ; then
+  if [[ ! -d $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR || -L $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR ]] ; then
     fail 'specified source directory does not exist or is not readable'
   fi
 
-  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_PREFIX" ]; then
-    WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_PREFIX="$(basename $WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR)/"
+  if [ ! -n "$WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX" ]; then
+    WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX="$(basename $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR)/"
   fi
 
   if [[ "$WERCKER_OCI_OBJECTSTORE_SYNC_OVERWRITE" == "true" || "$WERCKER_OCI_OBJECTSTORE_SYNC_OVERWRITE" == "TRUE" ]]; then
@@ -79,7 +79,7 @@ bulk_upload_cmd() {
   fi  
 
   set +e
-  return "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_SOURCE_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_OBJECT_PREFIX"
+  return "$WERCKER_STEP_ROOT/oci --config-file $CONFIG_FILE os object bulk-upload $WERCKER_OCI_OBJECTSTORE_SYNC_OPTIONS $OVERWRITE_FLAG --namespace $WERCKER_OCI_OBJECTSTORE_SYNC_NAMESPACE --bucket-name $WERCKER_OCI_OBJECTSTORE_SYNC_BUCKET_NAME --src-dir $WERCKER_OCI_OBJECTSTORE_SYNC_LOCAL_DIR --object-prefix $WERCKER_OCI_OBJECTSTORE_SYNC_PREFIX"
 }
 
 main() {

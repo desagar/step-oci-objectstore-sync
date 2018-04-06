@@ -1,5 +1,5 @@
 name: oci-objectstore-sync
-version: 0.2.7
+version: 0.2.8
 summary: oci-objectstore-sync step
 tags:
 - oci
@@ -28,10 +28,10 @@ properties:
 - name: object_name
   type: string
   required: true
-- name: source_dir
+- name: local_dir
   type: string
   required: true
-- name: object_prefix
+- name: prefix
   type: string
   required: false
 - name: overwrite
