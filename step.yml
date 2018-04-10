@@ -1,6 +1,6 @@
-name: oci-objectstore
+name: oci-objectstore-sync
 version: 0.1.0
-summary: oci-objectstore step
+summary: oci-objectstore-sync step
 tags:
 properties:
 - name: region
