@@ -1,6 +1,6 @@
-name: oci-objectstore-sync
-version: 0.3.3
-summary: oci-objectstore-sync step
+name: oci-objectstore
+version: 0.1.0
+summary: oci-objectstore step
 tags:
 - oci
 properties:
@@ -15,7 +15,10 @@ properties:
   required: true
 - name: fingerprint
   type: string
-  required: false
+  required: true
+- name: api_key
+  type: string
+  required: true  
 - name: namespace
   type: string
   required: true
@@ -25,22 +28,22 @@ properties:
 - name: command
   type: string
   required: true
+- name: options
+  type: string
+  required: false  
 - name: local_dir
   type: string
   required: true
 - name: prefix
   type: string
   required: false
-- name: overwrite
-  type: boolean
-  required: false
-  default: false
 - name: local_file
   type: string
   required: false
 - name: object_name
   type: string
   required: false
-- name: options
-  type: string
+- name: overwrite
+  type: boolean
   required: false
+  default: false 
