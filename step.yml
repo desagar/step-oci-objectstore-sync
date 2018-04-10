@@ -2,7 +2,6 @@ name: oci-objectstore
 version: 0.1.0
 summary: oci-objectstore step
 tags:
-- oci
 properties:
 - name: region
   type: string
